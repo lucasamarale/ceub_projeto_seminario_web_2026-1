@@ -1,14 +1,15 @@
 // Cada item do menu aponta a funcionalidade que o perfil precisa ter para vê-lo.
+// O grupo separa o que é da loja (comprar e vender) do que é de gestão (bastidores e cadastros).
 export const MENU = [
-  { rota: "/catalogo", rotulo: "Catálogo", exige: "catalogo.ver" },
-  { rota: "/sacola", rotulo: "Sacola", exige: "sacola.usar" },
-  { rota: "/pedidos", rotulo: "Pedidos", exige: "sacola.usar" },
-  { rota: "/vender", rotulo: "Vender", exige: "consignacao.publicar" },
-  { rota: "/bastidores", rotulo: "Bastidores", exige: "bastidores.ver" },
-  { rota: "/pecas", rotulo: "Peças", exige: "pecas.gerenciar" },
-  { rota: "/usuarios", rotulo: "Usuários", exige: "usuarios.gerenciar" },
-  { rota: "/perfis", rotulo: "Perfis", exige: "perfis.gerenciar" },
-  { rota: "/funcionalidades", rotulo: "Funcionalidades", exige: "funcionalidades.gerenciar" },
+  { rota: "/catalogo", grupo: "Loja", rotulo: "Catálogo", exige: "catalogo.ver" },
+  { rota: "/sacola", grupo: "Loja", rotulo: "Sacola", exige: "sacola.usar" },
+  { rota: "/pedidos", grupo: "Loja", rotulo: "Pedidos", exige: "sacola.usar" },
+  { rota: "/vender", grupo: "Loja", rotulo: "Vender", exige: "consignacao.publicar" },
+  { rota: "/bastidores", grupo: "Gestão", rotulo: "Bastidores", exige: "bastidores.ver" },
+  { rota: "/pecas", grupo: "Gestão", rotulo: "Peças", exige: "pecas.gerenciar" },
+  { rota: "/usuarios", grupo: "Gestão", rotulo: "Usuários", exige: "usuarios.gerenciar" },
+  { rota: "/perfis", grupo: "Gestão", rotulo: "Perfis", exige: "perfis.gerenciar" },
+  { rota: "/funcionalidades", grupo: "Gestão", rotulo: "Funcionalidades", exige: "funcionalidades.gerenciar" },
 ];
 export const CATEGORIAS = ["Camisetas e blusas", "Camisas", "Vestidos", "Saias", "Calças jeans", "Jaquetas e casacos", "Calçados", "Bolsas e acessórios"];
 export const CONSERVACOES = ["Novo com etiqueta", "Ótimo estado", "Bom estado", "Com marcas de uso"];

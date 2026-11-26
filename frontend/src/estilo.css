@@ -136,7 +136,7 @@ code { background: var(--ceub-lilas); color: var(--ceub-escuro); padding: 2px 6p
 .card.peca:focus { outline: none; }
 .card.peca:focus-visible { outline: 3px solid var(--ceub-magenta); outline-offset: 2px; }
 /* Faixa com as cores da marca CEUB sob o cabeçalho */
-header.bg-ceub-escuro { border-bottom: 4px solid transparent; border-image: linear-gradient(90deg, var(--ceub-magenta) 0 40%, var(--ceub-rosa) 40% 75%, var(--ceub-amarelo) 75% 100%) 1; }
+.topo-barra { border-bottom: 4px solid transparent; border-image: linear-gradient(90deg, var(--ceub-magenta) 0 40%, var(--ceub-rosa) 40% 75%, var(--ceub-amarelo) 75% 100%) 1; }
 
 /* ---------- movimento
    Entradas usam ease-out forte e duram menos de 300 ms. Só opacidade e transform são animados.
@@ -148,7 +148,7 @@ header.bg-ceub-escuro { border-bottom: 4px solid transparent; border-image: line
 .painel.abre { animation: surgir .22s var(--sai) both; transform-origin: top center; }
 .aviso:not(:empty), .erro-geral, .erro { animation: aparecer .2s ease-out both; }
 .arara { animation: aparecer .4s ease-out both; }
-@media (max-width: 1279px) { .menu.flex { animation: surgir .18s var(--sai) both; transform-origin: top right; } }
+@media (max-width: 1023px) { .abas.aberto { animation: surgir .18s var(--sai) both; } }
 .card.peca { content-visibility: auto; contain-intrinsic-size: auto 420px; }
 /* Esqueleto do catálogo: espelha o cartão e só aparece se a resposta demorar mais de 200 ms */
 .esqueleto { border: 1.5px solid var(--borda); border-radius: 14px; overflow: hidden; background: #fff; animation: aparecer .2s ease-out .2s both; }
@@ -162,7 +162,7 @@ header.bg-ceub-escuro { border-bottom: 4px solid transparent; border-image: line
 [id] { scroll-margin-top: 16px; }
 /* Menos movimento: ficam as mudanças de cor e opacidade, saem deslocamento, escala e brilho. */
 @media (prefers-reduced-motion: reduce) {
-  .card.peca.entra, .painel.abre, .menu.flex { animation-name: aparecer; animation-delay: 0s; }
+  .card.peca.entra, .painel.abre, .abas.aberto { animation-name: aparecer; animation-delay: 0s; }
   .esqueleto i { animation: none; }
   .card.peca:hover, .card.peca:hover .foto img, .btn:active:not(:disabled), .botao-menu:active, .demo:active, .item-menu:active { transform: none; }
   .pular { transition: none; }
@@ -224,7 +224,6 @@ header.bg-ceub-escuro { border-bottom: 4px solid transparent; border-image: line
 .peca .nome { display: -webkit-box; -webkit-box-orient: vertical; -webkit-line-clamp: 2; overflow: hidden; }
 .peca .card-content p:last-child { gap: 6px 8px; }
 .peca .situacao, .peca .voltas, .peca-preco .situacao { flex: none; }
-header .text-sm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 22ch; }
 .tabela-rolavel .acoes .btn { flex: none; }
 
 /* ---------- loja: sacola, pedidos, consignação e bastidores */
@@ -265,8 +264,6 @@ header .text-sm { min-width: 0; overflow: hidden; text-overflow: ellipsis; white
 @media (min-width: 640px) { .peca-compra .btn { width: auto; min-width: 240px; } }
 
 /* ---------- menu com nove itens: só vira barra a partir de 1280 px, e o perfil aparece quando sobra espaço */
-@media (min-width: 1280px) { .item-menu { padding: 10px 11px; } .menu { gap: .5rem; } }
-@media (min-width: 1280px) and (max-width: 1439px) { .perfil-nome { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); white-space: nowrap; } }
 .respiro { margin: 0 0 40px; }
 .pedido .peca-preco { margin-bottom: 24px; }
 .linhas .btn { flex: none; }
@@ -292,3 +289,33 @@ main p a, .painel a { color: var(--ceub-roxo); font-weight: 600; text-underline-
 .confete { position: fixed; z-index: 61; top: 0; left: 0; pointer-events: none; }
 @media (prefers-reduced-motion: reduce) { .festa, .festa-caixa { animation: none; } }
 @media (max-width: 380px) { .festa-carimbo { width: 64px; height: 64px; right: 10px; top: 10px; font-size: .68rem; } .festa-carimbo strong { font-size: 1.3rem; } }
+
+/* ---------- barra de cima em duas linhas: a escura diz onde você está e quem é, a clara traz as abas em grupos */
+.topo { position: relative; }
+.topo-dentro { max-width: 72rem; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; gap: 12px; }
+.conta { margin: 0 0 0 auto; min-width: 0; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+.conta .perfil-nome { font-weight: 500; opacity: .85; }
+.topo .botao-menu { display: none; }
+.abas { background: #fff; border-bottom: 1.5px solid var(--borda); }
+.abas-dentro { max-width: 72rem; margin: 0 auto; padding: 0 16px; display: flex; align-items: stretch; }
+.abas-grupo { display: flex; align-items: center; gap: 4px; padding: 8px 0; }
+.abas-grupo + .abas-grupo { margin-left: 18px; padding-left: 18px; border-left: 1.5px solid var(--borda); }
+.abas-rotulo { margin-right: 6px; font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ceub-cinza); }
+.abas ul { display: flex; gap: 2px; margin: 0; padding: 0; list-style: none; }
+.abas .item-menu { padding: 8px 12px; border-radius: 8px; color: var(--ceub-tinta); font-weight: 600; }
+.abas .item-menu.ativo { background: var(--ceub-lilas); color: var(--ceub-escuro); box-shadow: inset 0 -3px 0 var(--ceub-roxo); }
+.abas :focus-visible { outline-color: var(--ceub-roxo); }
+@media (hover: hover) and (pointer: fine) { .abas .item-menu:hover { background: var(--ceub-lilas); } .abas .item-menu.ativo:hover { background: var(--ceub-lilas); } }
+@media (max-width: 1023px) {
+  .topo .botao-menu { display: inline-flex; align-items: center; }
+  .conta { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
+  .topo .sair { margin-left: auto; }
+  .abas { display: none; position: absolute; left: 0; right: 0; top: 100%; z-index: 20; box-shadow: 0 16px 28px -16px rgba(43, 3, 50, .45); }
+  .abas.aberto { display: block; }
+  .abas-dentro { flex-direction: column; padding: 4px 16px 14px; }
+  .abas-grupo { flex-direction: column; align-items: stretch; gap: 2px; padding: 12px 0 6px; }
+  .abas-grupo + .abas-grupo { margin-left: 0; padding-left: 0; border-left: 0; border-top: 1.5px solid var(--borda); }
+  .abas-rotulo { margin: 0 0 4px 12px; }
+  .abas ul { flex-direction: column; }
+  .abas .item-menu { padding: 12px; }
+}

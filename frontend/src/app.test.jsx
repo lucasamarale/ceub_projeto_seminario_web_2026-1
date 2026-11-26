@@ -57,6 +57,23 @@ describe("o perfil decide o que aparece", () => {
   });
 });
 
+describe("barra de cima", () => {
+  it("separa as abas da loja das de gestão, cada grupo com o seu nome", async () => {
+    abrir({ como: "lucia" });
+    const loja = await screen.findByRole("group", { name: "Loja" });
+    const gestao = screen.getByRole("group", { name: "Gestão" });
+    expect(within(loja).getAllByRole("link").map((a) => a.textContent)).toEqual(["Catálogo", "Sacola", "Pedidos", "Vender"]);
+    expect(within(gestao).getAllByRole("link").map((a) => a.textContent)).toEqual(["Bastidores", "Peças", "Usuários", "Perfis", "Funcionalidades"]);
+    expect(screen.getByText("Loja")).toBeInTheDocument();
+  });
+  it("quem só tem a loja não vê nome de grupo", async () => {
+    abrir({ como: "ana" });
+    expect(await screen.findByRole("group", { name: "Loja" })).toBeInTheDocument();
+    expect(screen.queryByRole("group", { name: "Gestão" })).toBeNull();
+    expect(screen.queryByText("Loja")).toBeNull();
+  });
+});
+
 describe("sessão", () => {
   it("sai, limpa o token e volta ao login", async () => {
     const { usuario } = abrir({ como: "lucia" });
