@@ -10,7 +10,12 @@ Projeto da disciplina de Desenvolvimento Web (CEUB, Ciência da Computação). A
 
 ## Padrão de back-end pedido em aula e onde está
 
-O professor pediu que o back-end siga estes itens e que o projeto tenha uma skill com eles. A skill está em [`.claude/skills/padrao-backend/SKILL.md`](.claude/skills/padrao-backend/SKILL.md), e cada item está no código:
+O professor pediu que o back-end siga estes itens e que o projeto tenha skills com eles. São duas, uma para cada coluna do slide da aula:
+
+- [`.claude/skills/arquitetura-backend/SKILL.md`](.claude/skills/arquitetura-backend/SKILL.md): NestJS, HTTP, REST com Swagger, Prisma com migrations e padrão de tabelas.
+- [`.claude/skills/seguranca-boas-praticas/SKILL.md`](.claude/skills/seguranca-boas-praticas/SKILL.md): OWASP Top 10, proteção de dados, segurança de aplicação e JWT.
+
+Cada item também está no código:
 
 | Item | Como foi feito | Onde está |
 | --- | --- | --- |
@@ -164,7 +169,7 @@ Observações honestas:
 
 ```
 backend/    API (NestJS), banco (Prisma com SQLite), Swagger e testes (Vitest com Supertest)
-.claude/    Skill do projeto com o padrão de back-end pedido em aula
+.claude/    Skills do projeto: arquitetura e back-end, segurança e boas práticas
 frontend/   Site (React, Tailwind, Materialize), testes (Vitest, Testing Library) e Cypress
 .github/    Pipeline do GitHub Actions
 vercel.json Publicação: o site e a API como dois serviços do mesmo projeto
