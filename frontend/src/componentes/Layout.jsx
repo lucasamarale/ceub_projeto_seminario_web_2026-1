@@ -32,22 +32,22 @@ export function Layout() {
             </button>
           </div>
         </div>
-        {/* Linha de baixo: as abas, separadas em grupos com nome quando o perfil enxerga mais de um. */}
-        <nav id="menu-principal" aria-label="Principal" className={`abas ${aberto ? "aberto" : ""}`}>
-          <div className="abas-dentro">
-            {grupos.map(([nome, lista]) => (
-              <div key={nome} className="abas-grupo" role="group" aria-label={nome}>
-                {grupos.length > 1 && <span className="abas-rotulo" aria-hidden="true">{nome}</span>}
-                <ul>
-                  {lista.map((i) => (
-                    <li key={i.rota}><NavLink to={i.rota} className={classe} onClick={() => setAberto(false)}>{i.rotulo}</NavLink></li>
-                  ))}
-                </ul>
-              </div>
-            ))}
-          </div>
-        </nav>
       </header>
+      {/* As abas ficam fora do cabeçalho para grudar no topo e acompanhar a rolagem. Os grupos ganham nome quando o perfil enxerga mais de um. */}
+      <nav id="menu-principal" aria-label="Principal" className={`abas ${aberto ? "aberto" : ""}`}>
+        <div className="abas-dentro">
+          {grupos.map(([nome, lista]) => (
+            <div key={nome} className="abas-grupo" role="group" aria-label={nome}>
+              {grupos.length > 1 && <span className="abas-rotulo" aria-hidden="true">{nome}</span>}
+              <ul>
+                {lista.map((i) => (
+                  <li key={i.rota}><NavLink to={i.rota} className={classe} onClick={() => setAberto(false)}>{i.rotulo}</NavLink></li>
+                ))}
+              </ul>
+            </div>
+          ))}
+        </div>
+      </nav>
       <main id="conteudo" tabIndex="-1" className="mx-auto w-full max-w-6xl px-4 py-8 flex-1"><Outlet /></main>
       <footer className="border-t border-ceub-linha">
         <p className="mx-auto max-w-6xl px-4 py-5 m-0 text-sm text-ceub-cinza">Ciranda · projeto de Desenvolvimento Web, CEUB 2026. Sistema acadêmico, sem vendas reais.</p>

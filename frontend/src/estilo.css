@@ -290,32 +290,39 @@ main p a, .painel a { color: var(--ceub-roxo); font-weight: 600; text-underline-
 @media (prefers-reduced-motion: reduce) { .festa, .festa-caixa { animation: none; } }
 @media (max-width: 380px) { .festa-carimbo { width: 64px; height: 64px; right: 10px; top: 10px; font-size: .68rem; } .festa-carimbo strong { font-size: 1.3rem; } }
 
-/* ---------- barra de cima em duas linhas: a escura diz onde você está e quem é, a clara traz as abas em grupos */
-.topo { position: relative; }
+/* ---------- barra de cima em duas linhas: a escura diz quem você é, a clara traz as abas em grupos e acompanha a rolagem */
+:root { --topo-h: 68px; }
 .topo-dentro { max-width: 72rem; margin: 0 auto; padding: 10px 16px; display: flex; align-items: center; gap: 12px; }
 .conta { margin: 0 0 0 auto; min-width: 0; font-weight: 700; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .conta .perfil-nome { font-weight: 500; opacity: .85; }
 .topo .botao-menu { display: none; }
-.abas { background: #fff; border-bottom: 1.5px solid var(--borda); }
+.abas { position: sticky; top: 0; z-index: 30; background: #fff; border-bottom: 1.5px solid var(--borda); box-shadow: 0 6px 16px -14px rgba(43, 3, 50, .5); }
 .abas-dentro { max-width: 72rem; margin: 0 auto; padding: 0 16px; display: flex; align-items: stretch; }
 .abas-grupo { display: flex; align-items: center; gap: 4px; padding: 8px 0; }
 .abas-grupo + .abas-grupo { margin-left: 18px; padding-left: 18px; border-left: 1.5px solid var(--borda); }
 .abas-rotulo { margin-right: 6px; font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ceub-cinza); }
 .abas ul { display: flex; gap: 2px; margin: 0; padding: 0; list-style: none; }
-.abas .item-menu { padding: 8px 12px; border-radius: 8px; color: var(--ceub-tinta); font-weight: 600; }
-.abas .item-menu.ativo { background: var(--ceub-lilas); color: var(--ceub-escuro); box-shadow: inset 0 -3px 0 var(--ceub-roxo); }
+.abas .item-menu { padding: 8px 14px; border-radius: 999px; color: var(--ceub-tinta); font-weight: 600; }
+/* Aba atual: pílula cheia na cor da marca, sem traço embaixo. */
+.abas .item-menu.ativo { background: var(--ceub-escuro); color: #fff; }
 .abas :focus-visible { outline-color: var(--ceub-roxo); }
-@media (hover: hover) and (pointer: fine) { .abas .item-menu:hover { background: var(--ceub-lilas); } .abas .item-menu.ativo:hover { background: var(--ceub-lilas); } }
+@media (hover: hover) and (pointer: fine) { .abas .item-menu:hover { background: var(--ceub-lilas); } .abas .item-menu.ativo:hover { background: var(--ceub-escuro); } }
+/* A barra grudada não pode cobrir o título para onde a página rola ou o foco vai. */
+html { scroll-padding-top: 72px; }
 @media (max-width: 1023px) {
+  /* No celular quem gruda é a linha escura, com o botão do menu. O painel das abas abre por cima da página. */
+  .topo { position: sticky; top: 0; z-index: 30; }
+  .topo-barra { height: var(--topo-h); box-sizing: border-box; }
+  .topo-dentro { height: 100%; padding-top: 0; padding-bottom: 0; }
   .topo .botao-menu { display: inline-flex; align-items: center; }
   .conta { position: absolute; width: 1px; height: 1px; overflow: hidden; clip-path: inset(50%); }
   .topo .sair { margin-left: auto; }
-  .abas { display: none; position: absolute; left: 0; right: 0; top: 100%; z-index: 20; box-shadow: 0 16px 28px -16px rgba(43, 3, 50, .45); }
+  .abas { display: none; position: fixed; left: 0; right: 0; top: var(--topo-h); max-height: calc(100dvh - var(--topo-h)); overflow-y: auto; box-shadow: 0 16px 28px -16px rgba(43, 3, 50, .45); }
   .abas.aberto { display: block; }
   .abas-dentro { flex-direction: column; padding: 4px 16px 14px; }
   .abas-grupo { flex-direction: column; align-items: stretch; gap: 2px; padding: 12px 0 6px; }
   .abas-grupo + .abas-grupo { margin-left: 0; padding-left: 0; border-left: 0; border-top: 1.5px solid var(--borda); }
-  .abas-rotulo { margin: 0 0 4px 12px; }
+  .abas-rotulo { margin: 0 0 4px 14px; }
   .abas ul { flex-direction: column; }
-  .abas .item-menu { padding: 12px; }
+  .abas .item-menu { padding: 12px 14px; border-radius: 10px; }
 }
