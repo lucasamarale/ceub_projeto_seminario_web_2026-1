@@ -132,7 +132,7 @@ npm run migracoes:empacotar          # atualiza o SQL que a API aplica no banco 
 
 ```bash
 cd backend && npm test          # 97 testes, com relatório de cobertura
-cd frontend && npm test         # 107 testes, com relatório de cobertura
+cd frontend && npm test         # 108 testes, com relatório de cobertura
 cd frontend && npm run build && npm run e2e   # sobe API e site e roda o Cypress
 ```
 

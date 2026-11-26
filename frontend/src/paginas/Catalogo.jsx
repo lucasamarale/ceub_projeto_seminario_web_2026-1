@@ -7,6 +7,10 @@ import { Arara } from "../componentes/Arara.jsx";
 // Entrada dos cartões: intervalos que diminuem, só nos primeiros, e tudo termina em cerca de 300 ms.
 const ESPERAS = [0, 45, 85, 120, 150, 175, 195, 210];
 
+// Quem gerencia o acervo recebe da API também as peças em análise e recusadas, que aparecem na tela Peças.
+// No catálogo elas nunca entram: ali só fica o que já foi aprovado.
+const noCatalogo = (p) => !["Em análise", "Recusada"].includes(p.situacao);
+
 export function Catalogo() {
   const [pecas, setPecas] = useState(null);
   const [erro, setErro] = useState("");
@@ -37,7 +41,7 @@ export function Catalogo() {
   useEffect(() => {
     let vivo = true;
     api.listar("/pecas", { q, categoria })
-      .then((r) => { if (vivo) { setPecas(r); setErro(""); } })
+      .then((r) => { if (vivo) { setPecas(r.filter(noCatalogo)); setErro(""); } })
       .catch((e) => { if (vivo) { setPecas([]); setErro(e.message); } });
     return () => { vivo = false; };
   }, [q, categoria]);

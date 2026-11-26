@@ -211,6 +211,11 @@ describe("catálogo", () => {
     fireEvent.error(container.querySelector(".peca img"));
     expect(screen.getAllByText("sem foto")).toHaveLength(2);
   });
+  it("não mostra no catálogo a peça que ainda espera análise, nem para quem gerencia o acervo", async () => {
+    abrir({ rota: "/catalogo", como: "lucia", preparar: (banco) => { banco.pecas.push({ id: 9, titulo: "Saia midi plissada", marca: "Amaro", tamanho: "M", categoria: "Saias", conservacao: "Ótimo estado", preco: 69.9, voltas: 1, foto: "", situacao: "Em análise", donoId: 2 }); } });
+    expect(await screen.findByText("2 peças encontradas")).toBeInTheDocument();
+    expect(screen.queryByText("Saia midi plissada")).toBeNull();
+  });
   it("mostra um convite quando o catálogo não tem peça nenhuma", async () => {
     abrir({ rota: "/catalogo", como: "ana", preparar: (banco) => { banco.pecas.length = 0; } });
     expect(await screen.findByText("O catálogo ainda está vazio")).toBeInTheDocument();
