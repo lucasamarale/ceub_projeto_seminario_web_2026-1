@@ -1,6 +1,6 @@
 import { Controller, Get } from "@nestjs/common";
 import { ApiOperation, ApiTags } from "@nestjs/swagger";
-import { SemChave } from "./comum/guardas.js";
+import { SemChave } from "../comum/guardas.js";
 
 @ApiTags("Saúde")
 @Controller("api/saude")

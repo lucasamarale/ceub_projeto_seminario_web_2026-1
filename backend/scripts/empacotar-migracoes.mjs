@@ -11,7 +11,7 @@ export function lerMigracoes() {
     .filter((d) => d.isDirectory())
     .map((d) => d.name)
     .sort()
-    .map((nome) => ({ nome, sql: fs.readFileSync(path.join(pasta, nome, "migration.sql"), "utf8") }));
+    .map((nome) => ({ nome, sql: fs.readFileSync(path.join(pasta, nome, "migration.sql"), "utf8").replaceAll("\r\n", "\n") }));
 }
 export function gerarArquivo() {
   return `// Arquivo gerado por scripts/empacotar-migracoes.mjs a partir de prisma/migrations. Não edite à mão.

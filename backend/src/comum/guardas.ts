@@ -6,6 +6,7 @@ import jwt from "jsonwebtoken";
 import { AuthService, type UsuarioDaSessao } from "../auth/auth.service.js";
 import { CONFIG, type Config } from "../config.js";
 import { ErroHttp, semAcesso } from "./erros.js";
+import { ErroDto } from "./respostas.js";
 
 const SEM_CHAVE = "semChave";
 const EXIGE = "exige";
@@ -73,18 +74,22 @@ export const Autenticado = (...chaves: string[]) => applyDecorators(
   SetMetadata(EXIGE, chaves),
   UseGuards(GuardaDeAutenticacao, GuardaDePermissao),
   ApiBearerAuth(),
-  ApiResponse({ status: 401, description: "Token ausente, inválido ou expirado." }),
-  ...(chaves.length ? [ApiResponse({ status: 403, description: `O perfil precisa ter: ${chaves.join(" ou ")}.` })] : []),
+  ApiResponse({ status: 401, description: "Token ausente, inválido ou expirado.", type: ErroDto }),
+  ...(chaves.length ? [ApiResponse({ status: 403, description: `O perfil precisa ter: ${chaves.join(" ou ")}.`, type: ErroDto })] : []),
 );
 
 /** Troca as chaves pedidas em uma rota específica de um controlador que já usa @Autenticado. */
 export const Exigir = (...chaves: string[]) => applyDecorators(
   SetMetadata(EXIGE, chaves),
-  ApiResponse({ status: 403, description: `O perfil precisa ter: ${chaves.join(" ou ")}.` }),
+  ApiResponse({ status: 403, description: `O perfil precisa ter: ${chaves.join(" ou ")}.`, type: ErroDto }),
 );
 
 /** Documenta no Swagger que a rota pede a chave de API. */
-export const ComChaveDeApi = () => ApiSecurity("chave-de-api");
+export const ComChaveDeApi = () => applyDecorators(
+  ApiSecurity("chave-de-api"),
+  ApiResponse({ status: 401, description: "Chave de API ausente ou inválida, ou token ausente, inválido ou expirado.", type: ErroDto }),
+  ApiResponse({ status: 429, description: "Muitas requisições. Aguarde um minuto.", type: ErroDto }),
+);
 
 /** Injeta no método o usuário da sessão, montado pela guarda de autenticação. */
 export const Usuario = createParamDecorator((_dado: unknown, contexto: ExecutionContext): UsuarioDaSessao => contexto.switchToHttp().getRequest().usuario);

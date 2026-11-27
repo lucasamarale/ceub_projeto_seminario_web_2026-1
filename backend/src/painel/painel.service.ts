@@ -1,33 +1,7 @@
-import { Controller, Get, Inject, Injectable, UseInterceptors } from "@nestjs/common";
-import { ApiOperation, ApiProperty, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { Inject, Injectable } from "@nestjs/common";
 import type { UsuarioDaSessao } from "../auth/auth.service.js";
 import { PrismaService } from "../banco/prisma.service.js";
-import { Autenticado, ComChaveDeApi, Usuario } from "../comum/guardas.js";
-import { centavos, EmDia, PAGOS } from "./reservas.js";
-
-export class ImpactoDto {
-  @ApiProperty({ type: Number, description: "Pedidos pagos." }) pedidos!: number;
-  @ApiProperty({ type: Number }) pecas!: number;
-  @ApiProperty({ type: Number }) pontos!: number;
-  @ApiProperty({ type: Number, description: "Litros de água poupados." }) agua!: number;
-  @ApiProperty({ type: Number, description: "Quilos de CO2 evitados." }) co2!: number;
-}
-export class RepasseDto {
-  @ApiProperty({ type: String }) dono!: string;
-  @ApiProperty({ type: Number }) pecas!: number;
-  @ApiProperty({ type: Number }) valor!: number;
-}
-export class BastidoresDto {
-  @ApiProperty({ type: Object, example: { "Disponível": 11, "Vendida": 2 } }) pecas!: Record<string, number>;
-  @ApiProperty({ type: Object, example: { Pago: 1 } }) pedidos!: Record<string, number>;
-  @ApiProperty({ type: Number }) faturamento!: number;
-  @ApiProperty({ type: Number }) repasseDevido!: number;
-  @ApiProperty({ type: Number }) ficaNoBrecho!: number;
-  @ApiProperty({ type: [RepasseDto] }) repasses!: RepasseDto[];
-  @ApiProperty({ type: Number }) agua!: number;
-  @ApiProperty({ type: Number }) co2!: number;
-  @ApiProperty({ type: Number }) pontos!: number;
-}
+import { centavos, PAGOS } from "../reservas/reservas.constantes.js";
 
 // Duas leituras de números: o impacto de quem compra e o painel de quem cuida do brechó.
 @Injectable()
@@ -61,24 +35,4 @@ export class PainelService {
       agua: v._sum.agua || 0, co2: Math.round((v._sum.co2 || 0) * 10) / 10, pontos: v._sum.pontos || 0,
     };
   }
-}
-
-@ApiTags("Painéis")
-@ComChaveDeApi()
-@UseInterceptors(EmDia)
-@Controller("api")
-export class PainelController {
-  constructor(@Inject(PainelService) private readonly servico: PainelService) {}
-
-  @Get("impacto")
-  @Autenticado("sacola.usar")
-  @ApiOperation({ summary: "O que as compras da pessoa já pouparam" })
-  @ApiResponse({ status: 200, type: ImpactoDto })
-  impacto(@Usuario() quem: UsuarioDaSessao) { return this.servico.impacto(quem); }
-
-  @Get("bastidores")
-  @Autenticado("bastidores.ver")
-  @ApiOperation({ summary: "Painel do brechó", description: "Vendido, a repassar, peças e pedidos por situação." })
-  @ApiResponse({ status: 200, type: BastidoresDto })
-  bastidores() { return this.servico.bastidores(); }
 }

@@ -67,10 +67,12 @@ Antes de mexer em login, entrada de dados, cookie ou segredo, leia a seção cor
 
 **Validação de entrada.** Tudo o que chega é validado no servidor, mesmo que o front já valide.
 
-- Todo corpo e toda consulta passam por `validar(dados, REGRAS)` (`backend/src/comum/validar.ts`) no começo do método do serviço.
-- A regra é uma lista de permissão: campo que não está nela é descartado.
-- Cada campo tem tipo, obrigatoriedade e limites (`min`, `max`). Lista fechada de valores usa `opcoes`. Formato usa `padrao` com expressão regular.
-- O erro volta com status 400 e a mensagem de cada campo em `detalhes`.
+- A validação segue o padrão do Nest: `ValidationPipe` com class-validator e class-transformer. As regras ficam no DTO, como decoradores, e o pipe roda antes de o controlador ser chamado.
+- Na rota, o corpo e a consulta entram por `@Body(validado(MeuDto))` ou `@Query(validado(MeuDto))`. O identificador da rota entra por `@Param("id", IdDaRota)`. Os dois estão em `backend/src/comum/validacao.ts`.
+- O pipe usa `whitelist`: campo que o DTO não declara é descartado. É uma lista de permissão, então ninguém grava `perfilId` ou `situacao` onde não devia.
+- Cada campo do DTO tem tipo (`@IsString`, `@IsInt`, `@IsNumber`, `@IsBoolean`), obrigatoriedade (`@IsDefined` ou `@IsOptional`) e limites (`@MinLength`, `@MaxLength`, `@Min`, `@Max`). Lista fechada de valores usa `@IsIn`. Formato usa `@Matches` com expressão regular. Número que pode chegar como texto usa `@Type(() => Number)`.
+- As mensagens em português são as constantes de `validacao.ts` (`obrigatorio`, `texto`, `minimo`, `maximo`, `email`, `opcao`, `numero`...). Exemplo de campo: `@IsDefined(obrigatorio) @IsString(texto) @MinLength(3, minimo) @MaxLength(80, maximo) nome!: string;`. Copie de `backend/src/pecas/pecas.dto.ts`.
+- O erro volta com status 400 e uma mensagem por campo em `detalhes`.
 - O corpo tem teto de 100 kB.
 
 **Gestão de segredos.**
@@ -118,7 +120,7 @@ npm test   # inclui os testes de segurança, de cookie e de CSRF
 E confira, para cada rota nova ou alterada:
 
 - [ ] Tem `@Autenticado` com a funcionalidade certa, ou um motivo escrito para ser aberta.
-- [ ] Valida o corpo e a consulta com `validar`, no servidor.
+- [ ] Valida o corpo e a consulta no servidor, com um DTO do class-validator e `validado(Dto)` na rota.
 - [ ] Acessa o banco pelo Prisma, sem `$queryRawUnsafe` com valor de requisição.
 - [ ] Filtra pelo dono quando o dado é de uma pessoa, e responde 404 para o que é de outra.
 - [ ] Não devolve hash, segredo nem campo interno, nem na resposta nem no log.

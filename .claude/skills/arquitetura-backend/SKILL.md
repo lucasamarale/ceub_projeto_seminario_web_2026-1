@@ -13,16 +13,27 @@ Antes de mexer em qualquer coisa, leia o arquivo de exemplo da seção. Depois d
 
 O back-end é uma aplicação NestJS sobre Express, em TypeScript, na pasta `backend/`.
 
-- **Módulo:** `backend/src/app.module.ts` registra controladores, serviços, a guarda global da chave de API e o filtro global de erros.
+- **Módulo:** um por recurso. Cada pasta de `backend/src/` tem o seu (`usuarios/usuarios.module.ts`, `pecas/pecas.module.ts`...). O `backend/src/app.module.ts` só junta os módulos e registra a guarda global da chave de API e o filtro global de erros.
+- **Módulos globais:** `nucleo/nucleo.module.ts` (configuração e `PrismaService`) e `auth/auth.module.ts` (`AuthService` e as guardas). Os outros módulos usam esses dois sem importar.
+- **DTO:** classe que descreve o corpo ou a resposta de uma rota, com os decoradores do Swagger e do class-validator. Fica em `<recurso>.dto.ts`.
 - **Controlador:** recebe a requisição, lê parâmetros e devolve o que o serviço responder. Não tem regra de negócio nem acesso ao banco.
 - **Serviço:** tem a regra de negócio e fala com o banco pelo `PrismaService`.
 - **Guarda:** decide se a requisição passa (chave de API, login, permissão). Ficam em `backend/src/comum/guardas.ts`.
-- **Interceptador:** roda antes da rota. O `EmDia` (`backend/src/loja/reservas.ts`) solta as reservas vencidas.
+- **Interceptador:** roda antes da rota. O `EmDia` (`backend/src/reservas/em-dia.interceptor.ts`) solta as reservas vencidas. O módulo que usa o interceptador importa o `ReservasModule`.
 - **Filtro de erros:** `backend/src/comum/filtro-de-erros.ts` transforma qualquer erro em `{ erro, detalhes }`.
 
-Para criar um recurso novo, copie `backend/src/funcionalidades/funcionalidades.ts`, que é o CRUD mais simples: DTOs, serviço e controlador no mesmo arquivo. Depois registre o controlador e o serviço em `app.module.ts`.
+Para criar um recurso novo, copie a pasta `backend/src/funcionalidades/`, que é o CRUD mais simples. Ela mostra os quatro arquivos de todo recurso:
 
-Toda dependência entra pelo construtor com `@Inject(Classe)` explícito. Os testes rodam o TypeScript direto, sem os metadados de tipo, e sem o `@Inject` a injeção falha neles.
+| Arquivo | O que tem |
+| --- | --- |
+| `funcionalidades.module.ts` | O módulo: declara o controlador e o serviço. |
+| `funcionalidades.controller.ts` | As rotas, com os decoradores do Swagger. |
+| `funcionalidades.service.ts` | A regra de negócio e o acesso ao banco. |
+| `funcionalidades.dto.ts` | Os DTOs de entrada (com validação) e de resposta. |
+
+Depois inclua o módulo novo na lista de `imports` de `app.module.ts`. Um teste confere que todo recurso tem os quatro arquivos.
+
+Toda dependência entra pelo construtor com `@Inject(Classe)` explícito. Os testes e o pacote da Vercel rodam sem os metadados de tipo do TypeScript, e sem o `@Inject` a injeção falha neles. Pelo mesmo motivo, o pipe de validação recebe o DTO por escrito: `@Body(validado(LoginDto))`.
 
 ## 2. Web e APIs: HTTP
 
@@ -83,8 +94,14 @@ Toda rota nova precisa de:
 1. `@ApiTags` no controlador.
 2. `@ApiOperation({ summary })` dizendo o que a rota faz, em uma linha.
 3. `@ApiBody({ type: Dto })` quando há corpo, com um DTO cujos campos têm `@ApiProperty({ type, example })`.
-4. `@ApiResponse` para o sucesso e para cada erro que a rota pode devolver (400, 404, 409).
-5. `@ComChaveDeApi()` e `@Autenticado(...)`, que também documentam o 401 e o 403.
+4. `@ApiResponse({ status, type })` para o sucesso.
+5. Um decorador para cada erro que a rota pode devolver, com as descrições prontas de `backend/src/comum/respostas.ts`:
+   - Rota com corpo: `@ApiBadRequestResponse(DADOS_INVALIDOS)`.
+   - Rota com `:id`: `@ApiBadRequestResponse(ID_INVALIDO)` e `@ApiNotFoundResponse(erro("Peça não encontrada."))`.
+   - Conflito de estado: `@ApiConflictResponse(erro("..."))`.
+6. `@ComChaveDeApi()` e `@Autenticado(...)`, que também documentam o 401, o 403 e o 429.
+
+Todo erro aponta para o mesmo esquema, `ErroDto` (`{ erro, detalhes }`). Um teste confere que toda rota com identificador documenta 400 e 404 e que toda rota com corpo documenta 400 (`backend/test/validacao.test.js`).
 
 O tipo vai sempre explícito no `@ApiProperty` (`type: String`, `type: [Number]`). DTO de resposta nunca tem campo de senha ou de hash.
 
@@ -103,9 +120,9 @@ Para mudar o banco:
 
 Regras de uso:
 
-- Quando duas gravações dependem uma da outra, use `prisma.$transaction`. Exemplo: fechar o pedido em `backend/src/loja/pedidos.ts`.
-- Para evitar que duas pessoas mudem a mesma linha, troque a situação com `updateMany` e condição no `where`, e confira o `count`. Exemplo: reservar a peça em `backend/src/loja/sacola.ts`.
-- Use `select` para escolher os campos devolvidos. É assim que o hash da senha nunca sai (`backend/src/usuarios/usuarios.ts`).
+- Quando duas gravações dependem uma da outra, use `prisma.$transaction`. Exemplo: fechar o pedido em `backend/src/pedidos/pedidos.service.ts`.
+- Para evitar que duas pessoas mudem a mesma linha, troque a situação com `updateMany` e condição no `where`, e confira o `count`. Exemplo: reservar a peça em `backend/src/sacola/sacola.service.ts`.
+- Use `select` para escolher os campos devolvidos. É assim que o hash da senha nunca sai (`backend/src/usuarios/usuarios.service.ts`).
 - Dado de outra pessoa se filtra no `where`, com o identificador de quem está logado. Nunca confie em identificador vindo do corpo.
 
 ## 5. Padrão de tabelas: tbl + número + nome

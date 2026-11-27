@@ -1,9 +1,11 @@
 import { Body, Controller, Get, HttpCode, Inject, Post, Req, Res } from "@nestjs/common";
-import { ApiBody, ApiCookieAuth, ApiOperation, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { ApiBadRequestResponse, ApiBody, ApiConflictResponse, ApiCookieAuth, ApiOperation, ApiResponse, ApiTags, ApiTooManyRequestsResponse, ApiUnauthorizedResponse } from "@nestjs/swagger";
 import type { Request, Response } from "express";
 import { Autenticado, ComChaveDeApi, Usuario } from "../comum/guardas.js";
+import { DADOS_INVALIDOS, erro } from "../comum/respostas.js";
+import { validado } from "../comum/validacao.js";
 import { CONFIG, type Config } from "../config.js";
-import { CadastroDto, LoginDto, SessaoDto } from "./auth.dto.js";
+import { CadastroDto, EuDto, LoginDto, SessaoDto } from "./auth.dto.js";
 import { AuthService, type UsuarioDaSessao } from "./auth.service.js";
 
 /** Nome do cookie de sessão. */
@@ -34,9 +36,10 @@ export class AuthController {
   @ApiOperation({ summary: "Entra com e-mail e senha", description: "Devolve o JWT de acesso e grava o cookie HttpOnly de sessão. Limite de 10 tentativas por minuto por IP." })
   @ApiBody({ type: LoginDto })
   @ApiResponse({ status: 200, type: SessaoDto })
-  @ApiResponse({ status: 401, description: "E-mail ou senha incorretos." })
-  @ApiResponse({ status: 429, description: "Muitas tentativas." })
-  async entrar(@Body() corpo: LoginDto, @Res({ passthrough: true }) res: Response) {
+  @ApiBadRequestResponse(DADOS_INVALIDOS)
+  @ApiUnauthorizedResponse(erro("E-mail ou senha incorretos."))
+  @ApiTooManyRequestsResponse(erro("Muitas tentativas. Aguarde um minuto."))
+  async entrar(@Body(validado(LoginDto)) corpo: LoginDto, @Res({ passthrough: true }) res: Response) {
     return this.responder(res, await this.auth.entrar(corpo));
   }
 
@@ -44,9 +47,9 @@ export class AuthController {
   @ApiOperation({ summary: "Cria uma conta", description: "A conta nova entra sempre com o perfil Cliente." })
   @ApiBody({ type: CadastroDto })
   @ApiResponse({ status: 201, type: SessaoDto })
-  @ApiResponse({ status: 400, description: "Campos inválidos, com o erro de cada campo em detalhes." })
-  @ApiResponse({ status: 409, description: "E-mail já cadastrado." })
-  async cadastrar(@Body() corpo: CadastroDto, @Res({ passthrough: true }) res: Response) {
+  @ApiBadRequestResponse(DADOS_INVALIDOS)
+  @ApiConflictResponse(erro("E-mail já cadastrado."))
+  async cadastrar(@Body(validado(CadastroDto)) corpo: CadastroDto, @Res({ passthrough: true }) res: Response) {
     return this.responder(res, await this.auth.cadastrar(corpo));
   }
 
@@ -55,7 +58,7 @@ export class AuthController {
   @ApiCookieAuth(COOKIE_DE_SESSAO)
   @ApiOperation({ summary: "Troca o cookie de sessão por um JWT novo", description: "O token do cookie é de uso único e é trocado a cada chamada. Protegida contra CSRF por SameSite=Strict, pela lista de origens e pelo cabeçalho X-API-Key." })
   @ApiResponse({ status: 200, type: SessaoDto })
-  @ApiResponse({ status: 401, description: "Sem cookie, cookie vencido ou já usado." })
+  @ApiUnauthorizedResponse(erro("Sem cookie, cookie vencido ou já usado."))
   async renovar(@Req() req: Request, @Res({ passthrough: true }) res: Response) {
     try {
       return this.responder(res, await this.auth.renovar(req.cookies?.[COOKIE_DE_SESSAO]));
@@ -78,6 +81,7 @@ export class AuthController {
   @Get("eu")
   @Autenticado()
   @ApiOperation({ summary: "Quem está logado", description: "Lê o usuário, o perfil e as funcionalidades direto do banco." })
+  @ApiResponse({ status: 200, type: EuDto })
   eu(@Usuario() usuario: UsuarioDaSessao) {
     return { usuario };
   }

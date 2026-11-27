@@ -1,47 +1,16 @@
-import { Controller, Get, HttpCode, Inject, Injectable, Param, Post, Query, UseInterceptors } from "@nestjs/common";
-import { ApiOperation, ApiProperty, ApiQuery, ApiResponse, ApiTags } from "@nestjs/swagger";
+import { Inject, Injectable } from "@nestjs/common";
 import crypto from "node:crypto";
 import type { UsuarioDaSessao } from "../auth/auth.service.js";
 import { PrismaService } from "../banco/prisma.service.js";
 import { conflito, ErroHttp, naoEncontrado, semAcesso } from "../comum/erros.js";
-import { Autenticado, ComChaveDeApi, Exigir, Usuario } from "../comum/guardas.js";
 import { somarImpacto } from "../comum/impacto.js";
-import { lerId } from "../comum/validar.js";
 import { CONFIG, type Config } from "../config.js";
-import { centavos, EmDia, PAGOS, PARTE_DO_DONO, PRAZO_MS, ReservasService } from "./reservas.js";
+import { centavos, PAGOS, PARTE_DO_DONO, PRAZO_MS } from "../reservas/reservas.constantes.js";
+import { ReservasService } from "../reservas/reservas.service.js";
 
 // Depois de pago, o pedido anda por estas etapas, uma de cada vez.
 export const ETAPAS = PAGOS;
 const EVENTO: Record<string, string> = { "Em separação": "Peças separadas e embaladas", "Enviado": "Pacote postado", "Entregue": "Pedido entregue" };
-const SITUACOES_DO_PEDIDO = ["Aguardando pagamento", ...PAGOS, "Cancelado", "Expirado"];
-
-export class PedidoItemDto {
-  @ApiProperty({ type: Number, nullable: true }) pecaId!: number | null;
-  @ApiProperty({ type: String }) titulo!: string;
-  @ApiProperty({ type: String }) categoria!: string;
-  @ApiProperty({ type: Number }) preco!: number;
-  @ApiProperty({ type: String }) foto!: string;
-}
-export class PedidoEventoDto {
-  @ApiProperty({ type: String, example: "Pagamento confirmado" }) etapa!: string;
-  @ApiProperty({ type: Number, description: "Quando aconteceu, em milissegundos." }) quando!: number;
-}
-export class PedidoDto {
-  @ApiProperty({ type: Number }) id!: number;
-  @ApiProperty({ type: Number }) usuarioId!: number;
-  @ApiProperty({ type: String }) cliente!: string;
-  @ApiProperty({ type: Number }) total!: number;
-  @ApiProperty({ type: String, enum: SITUACOES_DO_PEDIDO }) situacao!: string;
-  @ApiProperty({ type: String, description: "Código do Pix simulado." }) pix!: string;
-  @ApiProperty({ type: String, description: "Código de rastreio simulado, depois do pagamento." }) rastreio!: string;
-  @ApiProperty({ type: Number }) pontos!: number;
-  @ApiProperty({ type: Number, description: "Litros de água poupados." }) agua!: number;
-  @ApiProperty({ type: Number, description: "Quilos de CO2 evitados." }) co2!: number;
-  @ApiProperty({ type: Number }) expiraEm!: number;
-  @ApiProperty({ type: Number }) criadoEm!: number;
-  @ApiProperty({ type: [PedidoItemDto] }) itens!: PedidoItemDto[];
-  @ApiProperty({ type: [PedidoEventoDto] }) eventos!: PedidoEventoDto[];
-}
 
 // Pedidos: nascem da sacola, são pagos com um Pix simulado e seguem uma linha do tempo.
 @Injectable()
@@ -148,54 +117,4 @@ export class PedidosService {
     ]);
     return this.completo(p.id);
   }
-}
-
-@ApiTags("Pedidos")
-@ComChaveDeApi()
-@Autenticado()
-@UseInterceptors(EmDia)
-@Controller("api/pedidos")
-export class PedidosController {
-  constructor(@Inject(PedidosService) private readonly servico: PedidosService) {}
-
-  @Get()
-  @ApiOperation({ summary: "Lista os próprios pedidos", description: "Com todos=1, lista os pedidos de todo mundo. Só para quem tem bastidores.ver." })
-  @ApiQuery({ name: "todos", required: false, enum: ["1"] })
-  @ApiResponse({ status: 200, type: [PedidoDto] })
-  @ApiResponse({ status: 403, description: "Perfil sem sacola.usar, ou sem bastidores.ver quando todos=1." })
-  listar(@Query("todos") todos: string, @Usuario() quem: UsuarioDaSessao) { return this.servico.listar(todos === "1", quem); }
-
-  @Get(":id")
-  @ApiOperation({ summary: "Busca um pedido", description: "Pedido de outra pessoa responde 404." })
-  @ApiResponse({ status: 200, type: PedidoDto })
-  buscar(@Param("id") id: string, @Usuario() quem: UsuarioDaSessao) { return this.servico.buscar(lerId(id), quem); }
-
-  @Post()
-  @Exigir("sacola.usar")
-  @ApiOperation({ summary: "Fecha a sacola em um pedido", description: "Gera o código do Pix simulado e dá 30 minutos para pagar." })
-  @ApiResponse({ status: 201, type: PedidoDto })
-  @ApiResponse({ status: 409, description: "Sacola vazia." })
-  fechar(@Usuario() quem: UsuarioDaSessao) { return this.servico.fechar(quem); }
-
-  @Post(":id/pagar")
-  @HttpCode(200)
-  @Exigir("sacola.usar")
-  @ApiOperation({ summary: "Confirma o Pix simulado", description: "Vende as peças, gera o rastreio e credita os pontos. Nenhum dinheiro circula." })
-  @ApiResponse({ status: 200, type: PedidoDto })
-  @ApiResponse({ status: 409, description: "Pedido que não está aguardando pagamento." })
-  pagar(@Param("id") id: string, @Usuario() quem: UsuarioDaSessao) { return this.servico.pagar(lerId(id), quem); }
-
-  @Post(":id/cancelar")
-  @HttpCode(200)
-  @Exigir("sacola.usar")
-  @ApiOperation({ summary: "Cancela um pedido ainda não pago" })
-  @ApiResponse({ status: 200, type: PedidoDto })
-  cancelar(@Param("id") id: string, @Usuario() quem: UsuarioDaSessao) { return this.servico.cancelar(lerId(id), quem); }
-
-  @Post(":id/avancar")
-  @HttpCode(200)
-  @Exigir("bastidores.ver")
-  @ApiOperation({ summary: "Move o pedido para a etapa seguinte", description: "Pago, Em separação, Enviado, Entregue." })
-  @ApiResponse({ status: 200, type: PedidoDto })
-  avancar(@Param("id") id: string, @Usuario() quem: UsuarioDaSessao) { return this.servico.avancar(lerId(id), quem); }
 }

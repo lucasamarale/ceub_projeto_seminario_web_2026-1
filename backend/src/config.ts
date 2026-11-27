@@ -57,6 +57,8 @@ export function lerConfig(env: Record<string, string | undefined> = process.env)
 let contador = 0;
 /** Endereço do SQLite para o Prisma. Banco descartável vira um arquivo novo na pasta temporária do sistema. */
 export function enderecoDoBanco(banco: string): string {
-  if (banco !== ":memory:") return banco.startsWith("file:") ? banco : `file:${path.resolve(banco)}`;
-  return `file:${path.join(os.tmpdir(), `ciranda-${process.pid}-${Date.now()}-${contador++}.db`)}`;
+  if (banco.startsWith("file:")) return banco;
+  const arquivo = banco === ":memory:" ? path.join(os.tmpdir(), `ciranda-${process.pid}-${Date.now()}-${contador++}.db`) : path.resolve(banco);
+  // No Windows o caminho vem com barra invertida. O endereço do banco usa sempre a barra normal.
+  return `file:${arquivo.replaceAll("\\", "/")}`;
 }

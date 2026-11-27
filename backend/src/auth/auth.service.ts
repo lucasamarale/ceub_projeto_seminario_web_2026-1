@@ -4,8 +4,8 @@ import crypto from "node:crypto";
 import jwt from "jsonwebtoken";
 import { PrismaService } from "../banco/prisma.service.js";
 import { conflito, ErroHttp } from "../comum/erros.js";
-import { validar } from "../comum/validar.js";
 import { CONFIG, type Config } from "../config.js";
+import type { CadastroDto, LoginDto } from "./auth.dto.js";
 
 export interface UsuarioDaSessao {
   id: number;
@@ -44,11 +44,7 @@ export class AuthService {
     return jwt.sign({ sub: String(usuarioId) }, this.config.jwtSegredo, { expiresIn: this.config.tokenExpiraEm as any, algorithm: "HS256" });
   }
 
-  async entrar(corpo: unknown) {
-    const { email, senha } = validar(corpo, {
-      email: { tipo: "email", obrigatorio: true, max: 120 },
-      senha: { tipo: "texto", obrigatorio: true, max: 200 },
-    });
+  async entrar({ email, senha }: LoginDto) {
     const u = await this.prisma.usuario.findUnique({ where: { email } });
     const confere = bcrypt.compareSync(senha, u ? u.senhaHash : this.hashFalso);
     // A mesma mensagem para e-mail errado, senha errada e conta desativada: não dá para descobrir quem tem conta.
@@ -57,12 +53,7 @@ export class AuthService {
   }
 
   // Cadastro aberto: quem se cadastra entra sempre como Cliente. Perfil nunca vem do formulário.
-  async cadastrar(corpo: unknown) {
-    const d = validar(corpo, {
-      nome: { tipo: "texto", obrigatorio: true, min: 3, max: 80 },
-      email: { tipo: "email", obrigatorio: true, max: 120 },
-      senha: { tipo: "texto", obrigatorio: true, min: 8, max: 200 },
-    });
+  async cadastrar(d: CadastroDto) {
     const perfil = await this.prisma.perfil.findUnique({ where: { nome: "Cliente" } });
     if (!perfil) throw new ErroHttp(503, "O cadastro está fechado no momento.");
     if (await this.prisma.usuario.findUnique({ where: { email: d.email } })) throw conflito("Já existe uma conta com esse e-mail. Entre com ela.");

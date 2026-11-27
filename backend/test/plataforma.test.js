@@ -2,7 +2,7 @@ import fs from "node:fs";
 import { describe, expect, it, vi } from "vitest";
 import { gerarArquivo, lerMigracoes } from "../scripts/empacotar-migracoes.mjs";
 import { COOKIE_DE_SESSAO } from "../src/auth/auth.controller.ts";
-import { PecasService } from "../src/pecas/pecas.ts";
+import { PecasService } from "../src/pecas/pecas.service.ts";
 import { enderecoDoBanco } from "../src/config.ts";
 import { CHAVE, montar } from "./apoio.js";
 
@@ -35,7 +35,7 @@ describe("padrão do banco: tbl + número + nome", () => {
 
 describe("migrations do Prisma", () => {
   it("o SQL que a API aplica ao subir é o mesmo da pasta prisma/migrations", () => {
-    const empacotado = fs.readFileSync(new URL("../src/banco/migracoes.ts", import.meta.url), "utf8");
+    const empacotado = fs.readFileSync(new URL("../src/banco/migracoes.ts", import.meta.url), "utf8").replaceAll("\r\n", "\n");
     expect(empacotado, "rode npm run migracoes:empacotar").toBe(gerarArquivo());
     expect(lerMigracoes().length).toBeGreaterThan(0);
   });
@@ -48,8 +48,10 @@ describe("migrations do Prisma", () => {
   });
   it("resolve o endereço do banco: descartável, caminho de arquivo ou endereço pronto", () => {
     expect(enderecoDoBanco(":memory:")).toMatch(/^file:.*ciranda-\d+-\d+-\d+\.db$/);
+    // Caminho do Windows vira endereço com barra normal.
+    expect(enderecoDoBanco(":memory:")).not.toContain("\\");
     expect(enderecoDoBanco(":memory:")).not.toBe(enderecoDoBanco(":memory:"));
-    expect(enderecoDoBanco("dados/x.db")).toMatch(/^file:\/.*dados\/x\.db$/);
+    expect(enderecoDoBanco("dados/x.db")).toMatch(/^file:.*\/dados\/x\.db$/);
     expect(enderecoDoBanco("file:/tmp/y.db")).toBe("file:/tmp/y.db");
   });
 });
@@ -67,8 +69,8 @@ describe("documentação Swagger", () => {
     expect(Object.keys(doc.components.securitySchemes)).toEqual(expect.arrayContaining(["chave-de-api", "bearer", "cookie"]));
     const criar = doc.paths["/api/usuarios"].post;
     expect(Object.keys(criar.responses)).toEqual(expect.arrayContaining(["201", "400", "401", "403", "409"]));
-    expect(criar.requestBody.content["application/json"].schema.$ref).toContain("UsuarioEntradaDto");
-    expect(doc.components.schemas.UsuarioEntradaDto.properties.email.type).toBe("string");
+    expect(criar.requestBody.content["application/json"].schema.$ref).toContain("UsuarioCriarDto");
+    expect(doc.components.schemas.UsuarioCriarDto.properties.email.type).toBe("string");
     // A documentação nunca descreve o hash da senha como campo de resposta.
     expect(JSON.stringify(doc.components.schemas.UsuarioDto)).not.toMatch(/senha/i);
   });

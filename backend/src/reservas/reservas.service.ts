@@ -1,17 +1,7 @@
-import { CallHandler, ExecutionContext, Inject, Injectable, NestInterceptor } from "@nestjs/common";
-import { from, switchMap } from "rxjs";
+import { Inject, Injectable } from "@nestjs/common";
 import type { Prisma } from "../banco/cliente/client.js";
 import { PrismaService } from "../banco/prisma.service.js";
 import { CONFIG, type Config } from "../config.js";
-
-// Regras de tempo da loja: quanto dura uma reserva e o que acontece quando ela vence.
-export const MINUTOS_DE_RESERVA = 30;
-export const PRAZO_MS = MINUTOS_DE_RESERVA * 60 * 1000;
-// Parte do preço que volta para quem deixou a peça em consignação.
-export const PARTE_DO_DONO = 0.6;
-// Situações de um pedido que já foi pago.
-export const PAGOS = ["Pago", "Em separação", "Enviado", "Entregue"];
-export const centavos = (n: number | null | undefined) => Math.round((n || 0) * 100) / 100;
 
 type Tx = Prisma.TransactionClient;
 
@@ -42,15 +32,5 @@ export class ReservasService {
       await tx.sacolaItem.deleteMany({ where: { pecaId: { in: ids } } });
       for (const { id } of pedidos) await this.soltarPedido(tx, id, "Expirado", "Reserva vencida sem pagamento");
     });
-  }
-}
-
-/** Interceptador das rotas da loja: solta as reservas vencidas antes de a rota responder. */
-@Injectable()
-export class EmDia implements NestInterceptor {
-  constructor(@Inject(ReservasService) private readonly reservas: ReservasService) {}
-
-  intercept(_contexto: ExecutionContext, proximo: CallHandler) {
-    return from(this.reservas.liberarVencidas()).pipe(switchMap(() => proximo.handle()));
   }
 }

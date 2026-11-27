@@ -1,0 +1,3 @@
+# Fim de linha igual em todo sistema, para os testes e as migrations se comportarem do mesmo jeito no Windows.
+* text=auto eol=lf
+*.webp binary

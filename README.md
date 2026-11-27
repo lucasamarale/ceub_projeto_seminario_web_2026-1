@@ -19,22 +19,22 @@ Cada item também está no código:
 
 | Item | Como foi feito | Onde está |
 | --- | --- | --- |
-| **Framework: NestJS** | API em NestJS com TypeScript: módulo, controladores, serviços, guardas, interceptador e filtro de erros. | `backend/src/app.module.ts` |
+| **Framework: NestJS** | API em NestJS com TypeScript: um módulo por recurso, cada um com controlador, serviço e DTOs em arquivos separados, mais guardas, interceptador e filtro de erros. | `backend/src/app.module.ts` e as pastas de `backend/src/` |
 | **HTTP: métodos** | GET lê, POST cria ou executa ação, PUT substitui, DELETE remove. | Controladores em `backend/src/*/` |
 | **HTTP: status codes** | 200, 201, 204, 400, 401, 403, 404, 409, 413, 429 e 500, cada um com um sentido só. | `backend/src/comum/erros.ts` e `filtro-de-erros.ts` |
 | **HTTP: headers** | `X-API-Key`, `Authorization: Bearer`, cabeçalhos de segurança do helmet e de limite de taxa. | `backend/src/comum/seguranca.ts` |
 | **HTTP: cookies** | Cookie de sessão `HttpOnly`, `Secure`, `SameSite=Strict`, restrito a `/api/auth`. | `backend/src/auth/auth.controller.ts` |
 | **HTTP: CORS** | Lista de origens permitidas. Origem fora da lista recebe 403. | `corsRestrito` em `backend/src/comum/seguranca.ts` |
-| **APIs REST com Swagger** | Documentação gerada do código, com corpo, respostas e esquemas de segurança de cada rota. | https://ciranda-web.vercel.app/api/docs e `backend/src/app.ts` |
+| **APIs REST com Swagger** | Documentação gerada do código, com corpo, respostas de sucesso e de erro (400, 401, 403, 404, 409, 429) e esquemas de segurança de cada rota. | https://ciranda-web.vercel.app/api/docs e `backend/src/app.ts` |
 | **ORM e migrations: Prisma** | Todo acesso ao banco pelo cliente do Prisma. Mudança de banco só por migration. | `backend/prisma/schema.prisma` e `backend/prisma/migrations/` |
 | **Padrão de tabelas** | `tbl` + número + nome: `tbl_001_usuarios` até `tbl_010_sessoes`. Um teste lê o banco e falha se alguma tabela fugir do padrão. | `backend/prisma/schema.prisma` e `backend/test/plataforma.test.js` |
 | **OWASP: SQL injection** | Consultas parametrizadas pelo Prisma. Nenhum valor de requisição é colado em SQL. | `backend/src/banco/prisma.service.ts` |
 | **OWASP: XSS** | API só devolve JSON com CSP `default-src 'none'`. O React escapa todo texto. Sessão longa em cookie `HttpOnly`. | `backend/src/comum/seguranca.ts` e `vercel.json` |
 | **OWASP: CSRF** | Rotas de dados pedem JWT no cabeçalho, não cookie. Cookie `SameSite=Strict`, origem conferida e cabeçalho `X-API-Key` obrigatório. | Testes "CSRF" em `backend/test/plataforma.test.js` |
-| **Hash de senhas** | bcrypt com custo 10. O hash nunca sai da API. | `backend/src/auth/auth.service.ts` e `backend/src/usuarios/usuarios.ts` |
+| **Hash de senhas** | bcrypt com custo 10. O hash nunca sai da API. | `backend/src/auth/auth.service.ts` e `backend/src/usuarios/usuarios.service.ts` |
 | **Criptografia** | JWT assinado com HMAC SHA-256. Token de sessão aleatório de 32 bytes, guardado no banco só como SHA-256. | `backend/src/auth/auth.service.ts` |
 | **HTTPS** | O site só responde por HTTPS, a API manda `Strict-Transport-Security` e o cookie sai com `Secure`. | `backend/src/comum/seguranca.ts` |
-| **Validação de entrada** | Todo corpo e toda consulta passam por regras de tipo, tamanho e formato. Campo fora da regra é descartado. | `backend/src/comum/validar.ts` |
+| **Validação de entrada** | `ValidationPipe` do Nest com class-validator: todo corpo e toda consulta passam por um DTO com regras de tipo, tamanho e formato. Campo que o DTO não declara é descartado. | `backend/src/comum/validacao.ts` e os arquivos `*.dto.ts` |
 | **Gestão de segredos** | Segredos só em variável de ambiente. Em produção a API não sobe sem eles. | `backend/src/config.ts` e `backend/.env.example` |
 | **JWT com o front** | JWT de 30 minutos no cabeçalho `Authorization`, renovado pelo cookie de sessão sem a pessoa perceber. | `backend/src/comum/guardas.ts` e `frontend/src/api.js` |
 
@@ -46,9 +46,9 @@ Cada item também está no código:
 | Front-end com framework à escolha | `frontend/` (React com Vite) |
 | Tailwind CSS e Materialize | `frontend/tailwind.config.js` e `frontend/src/estilo.css` |
 | Identidade visual do CEUB | Paleta oficial da Central da Marca em `frontend/tailwind.config.js` |
-| CRUD 01: Usuário | `backend/src/usuarios/usuarios.ts` e tela Usuários |
-| CRUD 02: Perfil | `backend/src/perfis/perfis.ts` e tela Perfis |
-| CRUD 03: Funcionalidades | `backend/src/funcionalidades/funcionalidades.ts` e tela Funcionalidades |
+| CRUD 01: Usuário | `backend/src/usuarios/` e tela Usuários |
+| CRUD 02: Perfil | `backend/src/perfis/` e tela Perfis |
+| CRUD 03: Funcionalidades | `backend/src/funcionalidades/` e tela Funcionalidades |
 | Cobertura de testes de 80% | Limite de 80% configurado nos dois `vitest.config`; o CI falha abaixo disso |
 | Cypress | `frontend/cypress/e2e/` (30 testes de ponta a ponta) |
 | Mock, fixture, fake e stub | Mock em `frontend/src/api.test.js`, fixtures em `frontend/cypress/fixtures/`, fake em `frontend/src/teste/apiFalsa.js`, stub da arara em `frontend/cypress/e2e/03-simulado.cy.js` |
@@ -70,12 +70,12 @@ Tudo o que o Ciranda original fazia, agora com servidor, permissão por funciona
 | Função | Como funciona | Onde está |
 | --- | --- | --- |
 | Cadastro aberto | Qualquer pessoa cria conta e entra sempre como Cliente. O perfil nunca vem do formulário. | `backend/src/auth/`, tela Criar conta |
-| Sacola com reserva | Colocar na sacola reserva a peça por 30 minutos. Duas pessoas não reservam a mesma peça, e a reserva vencida volta sozinha ao catálogo. | `backend/src/loja/sacola.ts`, `backend/src/loja/reservas.ts` |
-| Pix simulado | Fechar a sacola gera um pedido com código Pix de mentira e prazo. Um botão faz o papel do banco e abre a tela de comprado, com confetes e o que a compra poupou. Nenhum dinheiro circula. | `backend/src/loja/pedidos.ts`, tela do pedido |
-| Pedidos e rastreio | Linha do tempo de Pago a Entregue, com histórico e código de rastreio simulado. Cada pessoa vê só os próprios pedidos. | `backend/src/loja/pedidos.ts` |
-| Consignação | A pessoa envia a peça, o brechó aprova ou recusa com motivo, e a venda gera repasse de 60% para quem enviou. | `backend/src/loja/consignacao.ts`, telas Vender e Bastidores |
+| Sacola com reserva | Colocar na sacola reserva a peça por 30 minutos. Duas pessoas não reservam a mesma peça, e a reserva vencida volta sozinha ao catálogo. | `backend/src/sacola/`, `backend/src/reservas/` |
+| Pix simulado | Fechar a sacola gera um pedido com código Pix de mentira e prazo. Um botão faz o papel do banco e abre a tela de comprado, com confetes e o que a compra poupou. Nenhum dinheiro circula. | `backend/src/pedidos/`, tela do pedido |
+| Pedidos e rastreio | Linha do tempo de Pago a Entregue, com histórico e código de rastreio simulado. Cada pessoa vê só os próprios pedidos. | `backend/src/pedidos/` |
+| Consignação | A pessoa envia a peça, o brechó aprova ou recusa com motivo, e a venda gera repasse de 60% para quem enviou. | `backend/src/consignacao/`, telas Vender e Bastidores |
 | Impacto e pontos | Cada peça mostra a água e o carbono que poupa. Cada compra paga soma pontos. Categoria sem fator confiável não mostra número. | `backend/src/comum/impacto.ts`, `frontend/src/impacto.js` |
-| Bastidores | Vendido, a repassar, fila de consignação e pedidos para mover de etapa. | `backend/src/loja/painel.ts`, tela Bastidores |
+| Bastidores | Vendido, a repassar, fila de consignação e pedidos para mover de etapa. | `backend/src/painel/`, tela Bastidores |
 
 Quatro funcionalidades novas entram no cadastro de funcionalidades e podem ser dadas a qualquer perfil: `sacola.usar`, `consignacao.publicar`, `consignacao.aprovar` e `bastidores.ver`.
 
@@ -131,7 +131,7 @@ npm run migracoes:empacotar          # atualiza o SQL que a API aplica no banco 
 ## Testes
 
 ```bash
-cd backend && npm test          # 97 testes, com relatório de cobertura
+cd backend && npm test          # 106 testes, com relatório de cobertura
 cd frontend && npm test         # 109 testes, com relatório de cobertura
 cd frontend && npm run build && npm run e2e   # sobe API e site e roda o Cypress
 ```
