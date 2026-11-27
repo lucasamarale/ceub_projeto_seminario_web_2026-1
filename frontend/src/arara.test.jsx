@@ -87,12 +87,14 @@ describe("componente Arara", () => {
     window.Ciranda3D = { disponivel: () => true, arara };
     const largura = window.innerWidth;
     window.innerWidth = 390;
-    vi.spyOn(window, "matchMedia").mockReturnValue({ matches: true });
+    const antes = window.matchMedia;
+    window.matchMedia = vi.fn().mockReturnValue({ matches: true });
     render(<Arara pecas={[PECAS[0]]} aoEscolher={() => {}} />);
     expect(screen.getByRole("region")).toHaveTextContent("1 peça gira aqui");
     await waitFor(() => expect(arara).toHaveBeenCalled());
     expect(arara.mock.calls[0][3]).toMatchObject({ size: 0.42, gap: 4, showCaption: false, breeze: 0 });
     window.innerWidth = largura;
+    window.matchMedia = antes;
   });
 
   it("some sem deixar buraco quando não há WebGL", async () => {

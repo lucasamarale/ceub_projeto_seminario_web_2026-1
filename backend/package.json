@@ -14,6 +14,8 @@
     "@prisma/adapter-libsql": "^7.10.1",
     "@prisma/client": "^7.10.1",
     "bcryptjs": "^3.0.3",
+    "class-transformer": "^0.5.1",
+    "class-validator": "^0.15.1",
     "cookie-parser": "^1.4.7",
     "express-rate-limit": "^8.7.5",
     "helmet": "^8.3.0",
@@ -39,13 +41,16 @@
     "postinstall": "prisma generate",
     "build": "prisma generate && tsc -p tsconfig.build.json",
     "start": "node dist/main.js",
-    "dev": "tsc -p tsconfig.build.json --watch & node --watch dist/main.js",
-    "start:e2e": "LIMITE_LOGIN_POR_MINUTO=1000 LIMITE_POR_MINUTO=5000 BANCO=:memory: node dist/main.js",
+    "dev": "npm run build && node dist/main.js",
+    "start:e2e": "node scripts/subir-para-e2e.mjs",
     "test": "vitest run --coverage",
     "migrar": "prisma migrate dev",
     "migrar:producao": "prisma migrate deploy",
     "migracoes:empacotar": "node scripts/empacotar-migracoes.mjs",
     "empacotar": "esbuild src/vercel.ts --bundle --platform=node --format=esm --packages=external --outfile=pacote/api.mjs --log-level=warning",
     "build:vercel": "prisma generate && npm run empacotar"
+  },
+  "overrides": {
+    "effect": "3.22.5"
   }
 }

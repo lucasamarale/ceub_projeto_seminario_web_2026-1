@@ -17,7 +17,7 @@ export function abrir({ rota = "/", como, preparar } = {}) {
   }
   const usuario = userEvent.setup();
   const tela = render(
-    <MemoryRouter initialEntries={[rota]} future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <MemoryRouter initialEntries={[rota]}>
       <ProvedorDeSessao><App /></ProvedorDeSessao>
     </MemoryRouter>,
   );

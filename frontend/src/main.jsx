@@ -8,7 +8,7 @@ import { ProvedorDeSessao } from "./sessao.jsx";
 
 createRoot(document.getElementById("raiz")).render(
   <React.StrictMode>
-    <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+    <BrowserRouter>
       <ProvedorDeSessao><App /></ProvedorDeSessao>
     </BrowserRouter>
   </React.StrictMode>,

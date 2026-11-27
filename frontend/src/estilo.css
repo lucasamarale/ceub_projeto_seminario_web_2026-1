@@ -297,7 +297,7 @@ main p a, .painel a { color: var(--ceub-roxo); font-weight: 600; text-underline-
 .conta .perfil-nome { font-weight: 500; opacity: .85; }
 .topo .botao-menu { display: none; }
 .abas { position: sticky; top: 0; z-index: 30; background: #fff; border-bottom: 1.5px solid var(--borda); box-shadow: 0 6px 16px -14px rgba(43, 3, 50, .5); }
-.abas-dentro { max-width: 72rem; margin: 0 auto; padding: 0 16px; display: flex; align-items: stretch; }
+.abas-dentro { max-width: 72rem; margin: 0 auto; padding: 0 16px; display: flex; align-items: stretch; justify-content: center; }
 .abas-grupo { display: flex; align-items: center; gap: 4px; padding: 8px 0; }
 .abas-grupo + .abas-grupo { margin-left: 18px; padding-left: 18px; border-left: 1.5px solid var(--borda); }
 .abas-rotulo { margin-right: 6px; font-size: .72rem; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; color: var(--ceub-cinza); }

@@ -216,6 +216,13 @@ describe("catálogo", () => {
     expect(await screen.findByText("2 peças encontradas")).toBeInTheDocument();
     expect(screen.queryByText("Saia midi plissada")).toBeNull();
   });
+  it("apertar Enter na busca não recarrega a página", async () => {
+    abrir({ rota: "/catalogo", como: "ana" });
+    await screen.findByText("2 peças encontradas");
+    const envio = new Event("submit", { bubbles: true, cancelable: true });
+    screen.getByRole("search").dispatchEvent(envio);
+    expect(envio.defaultPrevented).toBe(true);
+  });
   it("mostra um convite quando o catálogo não tem peça nenhuma", async () => {
     abrir({ rota: "/catalogo", como: "ana", preparar: (banco) => { banco.pecas.length = 0; } });
     expect(await screen.findByText("O catálogo ainda está vazio")).toBeInTheDocument();
