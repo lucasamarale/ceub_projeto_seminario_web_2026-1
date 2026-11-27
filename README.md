@@ -4,12 +4,10 @@
 
 Projeto da disciplina de Desenvolvimento Web (CEUB, Ciência da Computação, 2026). A Ciranda é um brechó online: quem tem roupa parada deixa a peça em consignação, e quem procura reserva, paga e acompanha o pedido. O repositório traz os cadastros pedidos na disciplina, com controle de acesso por perfil, e a loja inteira em volta deles.
 
-| | |
-| --- | --- |
-| **Site no ar** | https://ciranda-web.vercel.app |
-| **Documentação da API (Swagger)** | https://ciranda-web.vercel.app/api/docs |
-| **Equipe** | Bruno Rodrigues dos Santos, Eduardo Clemente, Isaac Gomes de Moraes e Lucas Amaral Evangelista |
-| **Contas de demonstração** | `lucia@ciranda.app` (Administradora), `beatriz@ciranda.app` (Fornecedor), `ana@ciranda.app` (Cliente). Senha `ciranda123`. Dados fictícios. |
+- **Site no ar:** https://ciranda-web.vercel.app
+- **Documentação da API (Swagger):** https://ciranda-web.vercel.app/api/docs
+- **Equipe:** Bruno Rodrigues dos Santos, Eduardo Clemente, Isaac Gomes de Moraes e Lucas Amaral Evangelista
+- **Contas de demonstração:** `lucia@ciranda.app` (Administradora), `beatriz@ciranda.app` (Fornecedor) e `ana@ciranda.app` (Cliente). Senha `ciranda123`. Dados fictícios.
 
 ## Sumário
 
@@ -100,7 +98,7 @@ Para ver tudo em cinco minutos: entre como Ana, abra uma peça, coloque na sacol
 | CRUD 01: Usuário | `backend/src/usuarios/` e tela Usuários |
 | CRUD 02: Perfil | `backend/src/perfis/` e tela Perfis |
 | CRUD 03: Funcionalidades | `backend/src/funcionalidades/` e tela Funcionalidades |
-| Cobertura de testes de 80% | Limite de 80% configurado nos dois `vitest.config`; o CI falha abaixo disso |
+| Cobertura de testes de 80% | Limite de 80% configurado em `backend/vitest.config.js` e `frontend/vite.config.js`. O CI falha abaixo disso (seção 10). |
 | Cypress | `frontend/cypress/e2e/` (30 testes de ponta a ponta, seção 10) |
 | Mock, fixture, fake e stub | Mock em `frontend/src/api.test.js`, fixtures em `frontend/cypress/fixtures/`, fake em `frontend/src/teste/apiFalsa.js`, stub da arara em `frontend/cypress/e2e/03-simulado.cy.js` |
 | GitHub Actions (CI/CD) | `.github/workflows/ci.yml` para os testes, e publicação automática na Vercel a cada push na `main` |
@@ -154,16 +152,19 @@ Cada skill termina com uma lista de conferência para usar antes de abrir um pul
 
 O navegador fala só com a API. A API é a única que fala com o banco, sempre pelo Prisma.
 
-```mermaid
-flowchart LR
-  N["Navegador: React"] -->|HTTPS, X-API-Key, JWT| B["Borda da Vercel: firewall"]
-  B --> S["Filtros de segurança: helmet, CORS, limite de taxa"]
-  S --> G["Guardas: chave de API, JWT, permissão"]
-  G --> V["ValidationPipe: DTO"]
-  V --> C["Controlador"]
-  C --> SV["Serviço"]
-  SV --> P["Prisma"]
-  P --> DB[(SQLite)]
+```
+Navegador (React)
+   |  HTTPS, com X-API-Key e JWT
+   v
+Borda da Vercel (firewall)
+   v
+Filtros de segurança (helmet, CORS, limite de taxa)
+   v
+Guardas (chave de API, JWT, permissão)
+   v
+ValidationPipe (DTO)
+   v
+Controlador  ->  Serviço  ->  Prisma  ->  SQLite
 ```
 
 No back-end, cada recurso tem a sua pasta com quatro arquivos: módulo, controlador, serviço e DTOs.
